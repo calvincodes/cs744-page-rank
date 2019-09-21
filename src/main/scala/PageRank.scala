@@ -25,7 +25,7 @@ object PageRank {
 
       val contributions = links.join(ranks).flatMap {
         case(_, (linksList, rank)) =>
-          linksList.map(srcUrl => (srcUrl, rank / linksList.size))
+          linksList.map(destUrl => (destUrl, rank / linksList.size))
       }
       ranks = contributions.reduceByKey((x,y) => x+y).mapValues(sum => (0.15 + (0.85 * sum)))
     }
