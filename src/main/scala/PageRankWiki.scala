@@ -15,7 +15,17 @@ object PageRankWiki {
 
     val lowerCasedData = rawData.map(_.toLowerCase)
 
-    val link2EachDest = lowerCasedData.map(row => (row.split("\t")(0), row.split("\t")(1)))
+    val lowerCasedFilteredData = lowerCasedData.filter(row => row.split("\t").length == 2)
+
+    val link2EachDest = lowerCasedFilteredData.map(row => (
+      row.split("\t")(0),
+      if (row.split("\t").size == 2) {
+        row.split("\t")(1)
+      } else {
+        println(s"WTF! NO DATA FOR $row")
+        row.split("\t")(1)
+      }
+    ))
 
     val filteredLink2EachDest = link2EachDest.filter(row => !row._2.contains(":") || row._2.startsWith("Category:"))
 
@@ -23,7 +33,7 @@ object PageRankWiki {
 
     var ranks = links.map(link => (link._1, 1.0))
 
-    for (i <- 1 to 10) {
+    for (i <- 1 to 5) {
 
       val contributions = links.join(ranks).flatMap {
         case(_, (linksList, rank)) =>
