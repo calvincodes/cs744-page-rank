@@ -6,7 +6,9 @@ object PageRankWiki {
 
   def main(args: Array[String]): Unit = {
 
-    val conf = new SparkConf().setAppName("PageRankWiki")
+    val conf = new SparkConf()
+      .setMaster("spark://c220g2-011101vm-1.wisc.cloudlab.us:7077")
+      .setAppName("PageRankWiki")
     val sc = new SparkContext(conf)
 
     val inputFiles = "hdfs://128.104.223.172:9000/input_3/enwiki-pages-articles/link-enwiki-20180601-pages-articles*"
@@ -42,8 +44,8 @@ object PageRankWiki {
       ranks = contributions.reduceByKey((x,y) => x+y).mapValues(sum => (0.15 + (0.85 * sum)))
     }
 
-    ranks.saveAsTextFile("hdfs://128.104.223.172:9000/output_3_wiki/")
-    //    val output = ranks.collect() // Final output passed back to driver
+//    ranks.saveAsTextFile("hdfs://128.104.223.172:9000/output_3_wiki/")
+    val output = ranks.collect() // Final output passed back to driver
 
     sc.stop()
   }
