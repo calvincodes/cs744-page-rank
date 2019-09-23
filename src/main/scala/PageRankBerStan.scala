@@ -2,14 +2,14 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 
 //TODO: Comment everything
-object PageRank {
+object PageRankBerStan {
 
   def main(args: Array[String]): Unit = {
 
-    val conf = new SparkConf().setAppName("PageRank")
+    val conf = new SparkConf().setAppName("PageRankBerStan")
     val sc = new SparkContext(conf)
 
-    val webBerkStanLocation = "hdfs://128.104.223.172:9000/users/ajain/hdfs/input_3/web-BerkStan.txt"
+    val webBerkStanLocation = "hdfs://128.104.223.172:9000/input_3/web-BerkStan.txt"
 
     val rawData = sc.textFile(webBerkStanLocation)
 
@@ -17,7 +17,7 @@ object PageRank {
 
     val link2EachDest = filteredData.map(row => (row.split("\t")(0),row.split("\t")(1)))
 
-    val links = link2EachDest.groupByKey() // TODO: Cache this?
+    val links = link2EachDest.groupByKey().cache() // TODO: Cache this?
 
     var ranks = links.map(link => (link._1, 1.0))
 
@@ -30,7 +30,7 @@ object PageRank {
       ranks = contributions.reduceByKey((x,y) => x+y).mapValues(sum => (0.15 + (0.85 * sum)))
     }
 
-    ranks.saveAsTextFile("hdfs://128.104.223.172:9000/users/ajain/hdfs/output_3/")
+    ranks.saveAsTextFile("hdfs://128.104.223.172:9000/output_3_berstan/")
 //    val output = ranks.collect() // Final output passed back to driver
 
     sc.stop()
