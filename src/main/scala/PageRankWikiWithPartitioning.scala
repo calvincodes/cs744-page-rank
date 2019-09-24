@@ -4,7 +4,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.Partitioner
 
-object PageRankWiki {
+object PageRankWikiWithPartitioning {
 
 	class UrlPartitioner(numberOfPartitioners: Int) extends Partitioner {
 	  override def numPartitions: Int = numberOfPartitioners
