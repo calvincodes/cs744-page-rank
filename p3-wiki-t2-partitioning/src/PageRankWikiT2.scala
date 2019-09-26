@@ -4,14 +4,16 @@ import org.apache.spark.Partitioner
 
 object PageRankWikiT2 {
 
-  // TODO: Relevant comment
+    // Implementing org.apache.spark.Partitioner to create a custom partitioner
   class UrlPartitioner(numberOfPartitioners: Int) extends Partitioner {
+    // Returns the number of partitions you will create	
     override def numPartitions: Int = numberOfPartitioners
-
+    // Returns the partition ID (0 to numPartitions-1) for a given key.
     override def getPartition(key: Any): Int = {
       Math.abs(key.asInstanceOf[String].hashCode()% numPartitions)
     }
-
+    // Important to implement because Spark will need to test your Partitioner object against other 
+    // instances of itself when it decides whether two of your RDDs are partitioned the same way
     override def equals(other: Any): Boolean = other match {
       case partitioner: UrlPartitioner => partitioner.numPartitions == numPartitions
       case _ => false
@@ -28,8 +30,7 @@ object PageRankWikiT2 {
     val inputFiles = args(0) // Testing "hdfs://10.10.1.1:9000/input_3/enwiki-pages-articles/link-enwiki-20180601-pages-articles*"
     val outputLocation = args(1) // Testing "hdfs://10.10.1.1:9000/output_3_wiki/"
 
-    // TODO: Relevant comment
-    val numPartitions = 10
+    val numPartitions = 30
 
     // Read the data from input file into RDD
     val rawDataRdd = sc.textFile(inputFiles)
@@ -47,7 +48,7 @@ object PageRankWikiT2 {
     val filteredLink2EachDest = link2EachDest.filter(row => !row._2.contains(":") || row._2.startsWith("Category:"))
 
     // Create RDD with each row as srlUrl -> List<destUrl> mapping
-    val links = filteredLink2EachDest.groupByKey().partitionBy(new UrlPartitioner(numPartitions)).cache() // TODO: Cache this?
+    val links = filteredLink2EachDest.groupByKey().partitionBy(new UrlPartitioner(numPartitions)).cache() 
 
     // Create RDD with each row as srlUrl -> 1.0 mapping
     var ranks = links.map(link => (link._1, 1.0)).partitionBy(new UrlPartitioner(numPartitions))
@@ -61,8 +62,8 @@ object PageRankWikiT2 {
           linksList.map(destUrl => (destUrl, rank / linksList.size))
       }
       // Reduce the contributions RDD on its key (destUrl) and use the sum to compute rank using PageRank formula.
-      //TODO: Check if the partitioning is required here
-      // TODO: Add comment about partition
+      
+      
       ranks = contributions.reduceByKey((x,y) => x+y).mapValues(sum => (0.15 + (0.85 * sum))).partitionBy(new UrlPartitioner(numPartitions))
 
     }
