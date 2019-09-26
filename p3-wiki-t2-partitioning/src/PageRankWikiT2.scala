@@ -4,15 +4,18 @@ import org.apache.spark.Partitioner
 
 object PageRankWikiT2 {
 
-    // Implementing org.apache.spark.Partitioner to create a custom partitioner
+  // Implementing org.apache.spark.Partitioner to create a custom partitioner
   class UrlPartitioner(numberOfPartitioners: Int) extends Partitioner {
-    // Returns the number of partitions you will create	
+
+    // Returns the number of partitions you will create
     override def numPartitions: Int = numberOfPartitioners
+
     // Returns the partition ID (0 to numPartitions-1) for a given key.
     override def getPartition(key: Any): Int = {
       Math.abs(key.asInstanceOf[String].hashCode()% numPartitions)
     }
-    // Important to implement because Spark will need to test your Partitioner object against other 
+
+    // Important to implement because Spark will need to test your Partitioner object against other
     // instances of itself when it decides whether two of your RDDs are partitioned the same way
     override def equals(other: Any): Boolean = other match {
       case partitioner: UrlPartitioner => partitioner.numPartitions == numPartitions
@@ -48,7 +51,7 @@ object PageRankWikiT2 {
     val filteredLink2EachDest = link2EachDest.filter(row => !row._2.contains(":") || row._2.startsWith("Category:"))
 
     // Create RDD with each row as srlUrl -> List<destUrl> mapping
-    val links = filteredLink2EachDest.groupByKey().partitionBy(new UrlPartitioner(numPartitions)).cache() 
+    val links = filteredLink2EachDest.groupByKey().partitionBy(new UrlPartitioner(numPartitions))
 
     // Create RDD with each row as srlUrl -> 1.0 mapping
     var ranks = links.map(link => (link._1, 1.0)).partitionBy(new UrlPartitioner(numPartitions))
@@ -62,12 +65,10 @@ object PageRankWikiT2 {
           linksList.map(destUrl => (destUrl, rank / linksList.size))
       }
       // Reduce the contributions RDD on its key (destUrl) and use the sum to compute rank using PageRank formula.
-      
-      
       ranks = contributions.reduceByKey((x,y) => x+y).mapValues(sum => (0.15 + (0.85 * sum))).partitionBy(new UrlPartitioner(numPartitions))
-
     }
 
+    // Save resultRdd as a text file at user provided outputLocation
     ranks.saveAsTextFile(outputLocation)
 
     sc.stop()
