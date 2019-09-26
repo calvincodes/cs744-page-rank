@@ -6,7 +6,7 @@ echo ""
 echo 'Submitting spark job'
 echo ""
 spark-submit \
-  --class "PageRankBerkStanT1" \
+  --class "PageRankWikiT1" \
   target/scala-2.11/cs744-spark-page-rank_2.11-0.1.jar \
   "$1" \
   "$2"
