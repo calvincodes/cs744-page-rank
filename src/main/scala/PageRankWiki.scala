@@ -1,17 +1,18 @@
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
+import org.apache.spark.storage.StorageLevel
 
 //TODO: Comment everything
 object PageRankWiki {
 
   def main(args: Array[String]): Unit = {
 
-    val conf = new SparkConf()
-      .setMaster("spark://c220g2-011101vm-1.wisc.cloudlab.us:7077")
-      .setAppName("PageRankWiki")
+    // Create Spark Context object
+    val conf = new SparkConf().setAppName("PageRankWiki")
+//      .setMaster("spark://c220g2-011101vm-1.wisc.cloudlab.us:7077")
     val sc = new SparkContext(conf)
 
-    val inputFiles = "hdfs://128.104.223.172:9000/input_3/enwiki-pages-articles/link-enwiki-20180601-pages-articles*"
+    val inputFiles = "hdfs://10.10.1.1:9000/input_3/enwiki-pages-articles/link-enwiki-20180601-pages-articles*"
 
     val rawData = sc.textFile(inputFiles)
 
@@ -32,6 +33,7 @@ object PageRankWiki {
     val filteredLink2EachDest = link2EachDest.filter(row => !row._2.contains(":") || row._2.startsWith("Category:"))
 
     val links = filteredLink2EachDest.groupByKey().cache() // TODO: Cache this?
+//    val links = filteredLink2EachDest.groupByKey().persist(StorageLevel.DISK_ONLY) // TODO: Cache this?
 
     var ranks = links.map(link => (link._1, 1.0))
 

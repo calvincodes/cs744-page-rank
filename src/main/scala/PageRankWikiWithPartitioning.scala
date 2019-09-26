@@ -25,8 +25,9 @@ object PageRankWikiWithPartitioning {
       .setAppName("PageRankWiki")
     val sc = new SparkContext(conf)
 
-    // Reverted to local fs from the hdfs to avoid memory overflow error
-    val inputFiles = "/proj/uwmadison744-f19-PG0/data-part3/enwiki-pages-articles/link-enwiki-20180601-pages-articles*" 
+    val inputFiles = "hdfs://10.10.1.1:9000/input_3/enwiki-pages-articles/link-enwiki-20180601-pages-articles*"
+//    // Reverted to local fs from the hdfs to avoid memory overflow error
+//    val inputFiles = "/proj/uwmadison744-f19-PG0/data-part3/enwiki-pages-articles/link-enwiki-20180601-pages-articles*"
 
     val rawData = sc.textFile(inputFiles)
 
@@ -46,7 +47,7 @@ object PageRankWikiWithPartitioning {
 
     val filteredLink2EachDest = link2EachDest.filter(row => !row._2.contains(":") || row._2.startsWith("Category:"))
 
-    val numPartitions = 400
+    val numPartitions = 337
 
     val links = filteredLink2EachDest.groupByKey().partitionBy(new UrlPartitioner(numPartitions)).cache() // TODO: Cache this?
 
